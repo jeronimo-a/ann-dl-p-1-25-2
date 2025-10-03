@@ -19,6 +19,8 @@ class Layer:
     weights: np.ndarray
     biases: np.ndarray
 
+    cache: dict
+
     def __init__(self, size: int, loss_function: str, activation_function: str, weights_initializer: str, initial_biases: int = 0, seed: int = None):
 
         # set up random number generator with constant seed for reproducibility
@@ -33,6 +35,9 @@ class Layer:
         # parameter initialization parameters
         self.weights_initializer = weights_initializer.lower()
         self.initial_biases = initial_biases
+
+        # initializes cache
+        self.cache = {}
 
     def initialize_weights(self, n_input: int):
 
@@ -66,3 +71,17 @@ class Layer:
             case "binary-cross-entropy": return fn.binary_cross_entropy(y_true, y_pred)
             case "categorical-cross-entropy": return fn.categorical_cross_entropy(y_true, y_pred)
             case _: raise ValueError(f"Unknown loss function: {self.loss_function}. Must be one of 'bce' or 'cce'.")
+
+    def forward(self, a_prev: np.ndarray) -> np.ndarray:
+        self.cache['a_prev'] = a_prev
+        self.cache['z'] = self.weights @ a_prev + self.biases
+        self.cache['a'] = self.activation(self.cache['z'])
+        return self.cache['a']
+
+    def backward(self, dx_post: np.ndarray) -> np.ndarray:
+        dz = dx_post * self.activation_derivative(self.cache['z'])
+        m = self.cache['a_prev'].shape[1]
+        self.cache['dW'] = (1 / m) * (dz @ self.cache['a_prev'].T)
+        self.cache['db'] = (1 / m) * np.sum(dz, axis=1, keepdims=True)
+        dx = self.weights.T @ dz
+        return dx
