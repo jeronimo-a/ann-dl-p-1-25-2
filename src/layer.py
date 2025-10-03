@@ -9,7 +9,6 @@ class Layer:
     seed: int
 
     size: int
-    loss_function: str
     activation_function: str
 
     weights_initializer: str
@@ -57,7 +56,8 @@ class Layer:
             case "sigmoid": return fn.sigmoid(x)
             case "tanh": return fn.tanh(x)
             case "relu": return fn.relu(x)
-            case _: raise ValueError(f"Unknown activation function: {self.activation_function}. Must be one of 'sigmoid', 'tanh', or 'relu'.")
+            case "softmax": return fn.softmax(x)
+            case _: raise ValueError(f"Unknown activation function: {self.activation_function}. Must be one of 'sigmoid', 'tanh', 'relu' or 'softmax'.")
 
     def activation_derivative(self, x: np.ndarray) -> np.ndarray:
         match self.activation_function:
@@ -65,12 +65,6 @@ class Layer:
             case "tanh": return fn.tanh_derivative(x)
             case "relu": return fn.relu_derivative(x)
             case _: raise ValueError(f"Unknown activation function: {self.activation_function}. Must be one of 'sigmoid', 'tanh', or 'relu'.")
-
-    def loss(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
-        match self.loss_function:
-            case "binary-cross-entropy": return fn.binary_cross_entropy(y_true, y_pred)
-            case "categorical-cross-entropy": return fn.categorical_cross_entropy(y_true, y_pred)
-            case _: raise ValueError(f"Unknown loss function: {self.loss_function}. Must be one of 'bce' or 'cce'.")
 
     def forward(self, a_prev: np.ndarray) -> np.ndarray:
         self.cache['a_prev'] = a_prev
