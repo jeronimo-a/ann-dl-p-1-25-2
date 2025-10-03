@@ -85,3 +85,7 @@ class Layer:
         self.cache['db'] = (1 / m) * np.sum(dz, axis=1, keepdims=True)
         dx = self.weights.T @ dz
         return dx
+    
+    def update_parameters(self, learning_rate: float):
+        self.weights -= learning_rate * self.cache['dW']
+        self.biases -= learning_rate * self.cache['db']
