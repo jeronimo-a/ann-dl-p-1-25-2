@@ -60,5 +60,27 @@ class Layer:
             # unknown initializer
             case _:
                 raise ValueError(f"Unknown weight initializer: {self.weight_initializer}. Must be one of 'xavier-uniform', 'xavier-normal', 'he-uniform', or 'he-normal'.")
-    
-    
+            
+    def activation(self, x: np.ndarray) -> np.ndarray:
+        match self.activation_function:
+            case "sigmoid": return 1 / (1 + np.exp(-x))
+            case "tanh": return np.tanh(x)
+            case "relu": return np.maximum(0, x)
+            case _: raise ValueError(f"Unknown activation function: {self.activation_function}. Must be one of 'sigmoid', 'tanh', or 'relu'.")
+
+    def activation_derivative(self, x: np.ndarray) -> np.ndarray:
+
+        match self.activation_function:
+
+            case "sigmoid": 
+                sig = self.activation(x)
+                return sig * (1 - sig)
+            
+            case "tanh":
+                tanh = self.activation(x)
+                return 1 - tanh**2
+
+            case "relu":
+                return np.where(x > 0, 1, 0)
+
+            case _: raise ValueError(f"Unknown activation function: {self.activation_function}. Must be one of 'sigmoid', 'tanh', or 'relu'.")
