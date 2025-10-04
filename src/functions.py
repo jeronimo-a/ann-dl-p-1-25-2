@@ -52,23 +52,17 @@ def softmax(x: np.ndarray) -> np.ndarray:
 
 # -- LOSS FUNCTIONS --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 
-def binary_cross_entropy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
-    m = y_true.shape[0]
-    EPSILON = 1e-15
+def binary_cross_entropy(y_true, y_pred):
     y_pred = np.clip(y_pred, EPSILON, 1 - EPSILON)
-    loss = - (1 / m) * np.sum(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
-    return loss
+    return float(-(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred)))
 
-def categorical_cross_entropy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
-    EPSILON = 1e-15
+def categorical_cross_entropy(y_true: float, y_pred: float) -> float:
     y_pred = np.clip(y_pred, EPSILON, 1 - EPSILON)
-    loss = - np.mean(np.sum(y_true * np.log(y_pred), axis=1))
-    return loss
+    return float(-np.sum(y_true * np.log(y_pred), axis=0))
 
 def bce_wrt_sigmoid_derivative(y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
-    EPSILON = 1e-15
     y_pred = np.clip(y_pred, EPSILON, 1 - EPSILON)
-    return - (y_true / y_pred) + ((1 - y_true) / (1 - y_pred))
+    return float(-(y_true / y_pred) + ((1 - y_true) / (1 - y_pred)))
 
 def cce_wrt_softmax_derivative(y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
-    return y_pred - y_true
+    return float(y_pred - y_true)

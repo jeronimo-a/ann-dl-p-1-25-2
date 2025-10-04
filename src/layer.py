@@ -19,14 +19,13 @@ class Layer:
 
     cache: dict
 
-    def __init__(self, size: int, n_input: int, activation_function: str, weights_initializer: str, rng: np.random.Generator, initial_biases: int = 0):
+    def __init__(self, size: int, activation_function: str, weights_initializer: str, rng: np.random.Generator, initial_biases: int = 0):
 
         # attaches random number generator
         self.rng = rng
 
         # layer parameters
         self.size = size
-        self.n_input = n_input
         self.activation_function = activation_function.lower()
         
         # parameter initialization parameters
@@ -36,7 +35,9 @@ class Layer:
         # initializes cache
         self.cache = {}
 
-    def initialize_weights(self):
+    def initialize_weights(self, n_input: int):
+
+        self.n_input = n_input
 
         # biases initialization
         self.biases = np.full((self.size, 1), self.initial_biases, dtype=np.float64)
@@ -65,27 +66,18 @@ class Layer:
             case _: raise ValueError(f"Unknown activation function: {self.activation_function}. Must be one of 'sigmoid', 'tanh', or 'relu'.")
 
     def forward(self, x: np.ndarray) -> np.ndarray:
-        if x.shape != (self.n_input, 1): raise ValueError(f"Input shape {x.shape} does not match expected shape {(self.n_input, 1)}.")
         self.cache['x'] = x
         self.cache['z'] = self.weights @ x + self.biases
         self.cache['a'] = self.activation(self.cache['z'])
         return self.cache['a']
 
     def backward(self, da: np.ndarray) -> np.ndarray:
-        dz = da * self.activation_derivative(self.cache['z'])
-        self.cache['dW'] = dz @ self.cache['a_prev'].T
-        self.cache['db'] = dz
-        dx = self.weights.T @ dz
-        return dx
+        delta = da * self.activation_derivative(self.cache['z'])
+        self.cache['dW'] = (delta @ self.cache['x'].T)
+        self.cache['db'] = delta
+        dX = self.weights.T @ delta
+        return dX
     
     def update_parameters(self, learning_rate: float):
-        print("dW", end=" ")
-        print(self.cache['dW'])
-        print("db", end=" ")
-        print(self.cache['db'])
-        print("W", end=" ")
-        print(self.weights)
-        print("b", end=" ")
-        print(self.biases)
         self.weights -= learning_rate * self.cache['dW']
         self.biases -= learning_rate * self.cache['db']
