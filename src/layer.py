@@ -6,29 +6,27 @@ import functions as fn
 class Layer:
 
     rng: np.random.Generator
-    seed: int
 
     size: int
+    n_input: int
+
     activation_function: str
-
     weights_initializer: str
-    initial_weights: np.ndarray
-    initial_biases: int
 
+    initial_biases: int
     weights: np.ndarray
     biases: np.ndarray
 
     cache: dict
 
-    def __init__(self, size: int, loss_function: str, activation_function: str, weights_initializer: str, initial_biases: int = 0, seed: int = None):
+    def __init__(self, size: int, n_input: int, activation_function: str, weights_initializer: str, rng: np.random.Generator, initial_biases: int = 0):
 
-        # set up random number generator with constant seed for reproducibility
-        self.seed = seed if seed is not None else np.random.SeedSequence().entropy
-        self.rng = np.random.default_rng(self.seed)
+        # attaches random number generator
+        self.rng = rng
 
         # layer parameters
         self.size = size
-        self.loss_function = loss_function.lower()
+        self.n_input = n_input
         self.activation_function = activation_function.lower()
         
         # parameter initialization parameters
@@ -38,17 +36,17 @@ class Layer:
         # initializes cache
         self.cache = {}
 
-    def initialize_weights(self, n_input: int):
+    def initialize_weights(self):
 
         # biases initialization
-        self.biases = np.full((self.size, 1), self.initial_biases)
+        self.biases = np.full((self.size, 1), self.initial_biases, dtype=np.float64)
 
         # weights initialization
         match self.weights_initializer:
-            case "xavier-uniform": self.weights = fn.xavier_uniform(n_input, self.size, self.rng)
-            case "xavier-normal": self.weights = fn.xavier_normal(n_input, self.size, self.rng)
-            case "he-uniform": self.weights = fn.he_uniform(n_input, self.size, self.rng)
-            case "he-normal": self.weights = fn.he_normal(n_input, self.size, self.rng)
+            case "xavier-uniform": self.weights = fn.xavier_uniform(self.n_input, self.size, self.rng)
+            case "xavier-normal": self.weights = fn.xavier_normal(self.n_input, self.size, self.rng)
+            case "he-uniform": self.weights = fn.he_uniform(self.n_input, self.size, self.rng)
+            case "he-normal": self.weights = fn.he_normal(self.n_input, self.size, self.rng)
             case _: raise ValueError(f"Unknown weight initializer: {self.weight_initializer}. Must be one of 'xavier-uniform', 'xavier-normal', 'he-uniform', or 'he-normal'.")
             
     def activation(self, x: np.ndarray) -> np.ndarray:
@@ -66,20 +64,28 @@ class Layer:
             case "relu": return fn.relu_derivative(x)
             case _: raise ValueError(f"Unknown activation function: {self.activation_function}. Must be one of 'sigmoid', 'tanh', or 'relu'.")
 
-    def forward(self, a_prev: np.ndarray) -> np.ndarray:
-        self.cache['a_prev'] = a_prev
-        self.cache['z'] = self.weights @ a_prev + self.biases
+    def forward(self, x: np.ndarray) -> np.ndarray:
+        if x.shape != (self.n_input, 1): raise ValueError(f"Input shape {x.shape} does not match expected shape {(self.n_input, 1)}.")
+        self.cache['x'] = x
+        self.cache['z'] = self.weights @ x + self.biases
         self.cache['a'] = self.activation(self.cache['z'])
         return self.cache['a']
 
-    def backward(self, dx_post: np.ndarray) -> np.ndarray:
-        dz = dx_post * self.activation_derivative(self.cache['z'])
-        m = self.cache['a_prev'].shape[1]
-        self.cache['dW'] = (1 / m) * (dz @ self.cache['a_prev'].T)
-        self.cache['db'] = (1 / m) * np.sum(dz, axis=1, keepdims=True)
+    def backward(self, da: np.ndarray) -> np.ndarray:
+        dz = da * self.activation_derivative(self.cache['z'])
+        self.cache['dW'] = dz @ self.cache['a_prev'].T
+        self.cache['db'] = dz
         dx = self.weights.T @ dz
         return dx
     
     def update_parameters(self, learning_rate: float):
+        print("dW", end=" ")
+        print(self.cache['dW'])
+        print("db", end=" ")
+        print(self.cache['db'])
+        print("W", end=" ")
+        print(self.weights)
+        print("b", end=" ")
+        print(self.biases)
         self.weights -= learning_rate * self.cache['dW']
         self.biases -= learning_rate * self.cache['db']
