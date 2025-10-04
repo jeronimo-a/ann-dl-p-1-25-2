@@ -87,3 +87,29 @@ class MLP:
             self.loss_history.append(epoch_loss / X.shape[1])
             self.trained_epochs += 1
             print(f"Epoch {self.trained_epochs}/{epochs}, Loss: {epoch_loss:.4f}")
+
+    def accuracy(self, X: np.ndarray, y: np.ndarray) -> float:
+        
+        # validate inputs
+        if X.ndim != 2: raise ValueError(f"Input data X must be a 2D array, but got {X.ndim}D array.")
+        if y.ndim != 2: raise ValueError(f"Output data y must be a 2D array, but got {y.ndim}D array.")
+        if X.shape[1] != self.n_inputs: raise ValueError(f"Input data has {X.shape[1]} features, but model expects {self.n_inputs} features.")
+        if X.shape[0] != y.shape[0]: raise ValueError(f"Number of samples in X ({X.shape[1]}) does not match number of samples in y ({y.shape[1]}).")
+        if y.shape[1] != self.output_layer.size: raise ValueError(f"Output data has {y.shape[1]} features, but model expects {self.output_layer.size} features.")
+
+        n_correct = 0
+        n_total = X.shape[0]
+
+        for i in range(n_total):
+            y_pred = self.forward(X[i,np.newaxis].T)
+            y_actual = y[i,np.newaxis].T
+            if self.output_layer.size > 1:
+                y_pred = np.argmax(y_pred.flatten())
+                y_actual = np.argmax(y_actual.flatten())
+            elif self.output_layer.size == 1:
+                y_pred = round(y_pred[0,0])
+                y_actual = round(y_actual[0,0])
+
+            n_correct += int(y_pred == y_actual)
+
+        return n_correct / n_total
