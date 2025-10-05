@@ -121,10 +121,10 @@ class Process:
         # process each file for the patient
         dfs: list[pd.DataFrame] = list()
         for filename in patient_files:
-            
 
             filepath = os.path.join(self.raw_output_dir, filename + '.npy')
             snore_signal = np.load(filepath)
+            snore_signal = snore_signal.astype(np.float32) / 32768.0
 
             num_frames = (len(snore_signal) - frame_size_len) // frame_hop_len + ((len(snore_signal) - frame_size_len) % 2)
 
@@ -132,7 +132,7 @@ class Process:
             df['frame'] = range(num_frames)
             df['file_index'] = int(filename.split('_')[1])
             df['rms'] = lr.feature.rms(y=snore_signal, frame_length=frame_size_len, hop_length=frame_hop_len, center=False).flatten()[:-1]
-            n = df["rms"].isna().sum() - len(df)
+            df["dbfs"] = df["rms"].apply(lambda x: 20 * np.log10(x) if x > 0 else -100)
             dfs.append(df)
         
         # concatenates all dataframes and saves to parquet
