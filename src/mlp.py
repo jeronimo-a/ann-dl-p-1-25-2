@@ -113,3 +113,29 @@ class MLP:
             n_correct += int(y_pred == y_actual)
 
         return n_correct / n_total
+    
+    def save(self, filepath: str):
+        layer_params = dict()
+        layer_params["n_inputs"] = self.n_inputs
+        for i, hidden_layer in enumerate(self.hidden_layers):
+            layer_params[f"hidden_layer_{i}"] = {
+                "size": hidden_layer.size,
+                "activation_function": hidden_layer.activation_function,
+                "weights_initializer": hidden_layer.weights_initializer,
+                "initial_biases": hidden_layer.initial_biases,
+                "weights": hidden_layer.weights,
+                "biases": hidden_layer.biases
+            }
+        layer_params["output_layer"] = {
+            "size": self.output_layer.size,
+            "activation_function": self.output_layer.activation_function,
+            "weights_initializer": self.output_layer.weights_initializer,
+            "initial_biases": self.output_layer.initial_biases,
+            "loss_function": self.output_layer.loss_function,
+            "weights": self.output_layer.weights,
+            "biases": self.output_layer.biases
+        }
+        layer_params["learning_rate"] = self.learning_rate
+        layer_params["seed"] = self.seed
+        layer_params["trained_epochs"] = self.trained_epochs
+        np.savez_compressed(filepath, **layer_params)
