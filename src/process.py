@@ -63,6 +63,18 @@ class Process:
             unmatched_output = list(map(lambda x: x + '.npy', input_files - output_files))
             raise FileNotFoundError(f"Unmatched files. Each input file must have a matching output file.\n\nUnmatched input file(s): {unmatched_input}.\n\nUnmatched output file(s): {unmatched_output}.")
         self.files = input_files
+
+    def classify_output_sequences(self):
+
+        sequence_files = [f for f in os.listdir(self.output_sequences_dir) if f.endswith('.parquet')]
+        for filename in tqdm(sequence_files, desc="Classifying output sequences", unit="patient"):
+            filepath = os.path.join(self.output_sequences_dir, filename)
+            df = pd.read_parquet(filepath)
+            if "dbfs_threshold" not in df.attrs and "snored" not in df.columns:
+                threshold = self.settings['dbfs_threshold']
+                df['snored'] = (df['dbfs'] >= threshold).astype(np.int8)
+                df.attrs['dbfs_threshold'] = threshold
+                df.to_parquet(filepath, index=False)
         
     def compute_input_frames(self):
 
