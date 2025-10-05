@@ -6,3 +6,4 @@ sequence_hop_len=1          # 1 frame de offset
 audio_sample_rate=48000     # 48000Hz
 snore_sample_rate=500       # 500Hz
 n_mfcc=13                   # number of MFCCs
+dbfs_threshold=-30          # dBFS threshold to classify the snore signal as intense enough

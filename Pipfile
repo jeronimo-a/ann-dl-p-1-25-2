@@ -5,6 +5,12 @@ name = "pypi"
 
 [packages]
 numpy = "*"
+pyarrow = "*"
+pandas = "*"
+torch = "*"
+toml = "*"
+librosa = "*"
+soundfile = "*"
 
 [dev-packages]
 
