@@ -27,7 +27,7 @@ class Process:
     input_frames_dir: str
     output_frames_dir: str
 
-    def __init__(self, raw_input_dir: str, raw_output_dir: str, input_frames_dir: str, output_frames_dir: str):
+    def __init__(self, raw_input_dir: str, raw_output_dir: str, input_frames_dir: str, output_frames_dir: str, input_sequences_dir: str, output_sequences_dir: str):
         
         # checks if the input and output directories exist
         if not os.path.isdir(raw_input_dir): raise NotADirectoryError(f"Raw input data directory '{raw_input_dir}' is not a directory.")
@@ -38,34 +38,31 @@ class Process:
         self.raw_output_dir = raw_output_dir
         self.input_frames_dir = input_frames_dir
         self.output_frames_dir = output_frames_dir
+        self.input_sequences_dir = input_sequences_dir
+        self.output_sequences_dir = output_sequences_dir
 
-        try:
-            # loads settings
-            self.settings = toml_load(os.path.join(os.path.dirname(FILEPATH), '..', 'settings.toml'))['process']
+        # loads settings
+        self.settings = toml_load(os.path.join(os.path.dirname(FILEPATH), '..', 'settings.toml'))['process']
 
-            # calculates derived settings
-            self.settings["frame_size_ms"] = int(1000 * self.settings['audio_frame_size_len'] / self.settings['audio_sample_rate'])
-            self.settings["frame_hop_ms"] = int(1000 * self.settings['audio_frame_hop_len'] / self.settings['audio_sample_rate'])
-            snore_frame_size_len = self.settings['snore_sample_rate'] * self.settings['frame_size_ms'] / 1000
-            self.settings["snore_frame_size_len"] = int(snore_frame_size_len)
-            snore_frame_hop_len = self.settings['snore_sample_rate'] * self.settings['frame_hop_ms'] / 1000
-            self.settings["snore_frame_hop_len"] = int(snore_frame_hop_len)
-            if snore_frame_hop_len != int(snore_frame_hop_len):
-                raise ValueError(f"Snore frame hop length {snore_frame_hop_len} is not an integer. Adjust settings.")
-            if snore_frame_size_len != int(snore_frame_size_len):
-                raise ValueError(f"Snore frame size length {snore_frame_size_len} is not an integer. Adjust settings.")
-            
-            input_files = set([f.split(".")[0] for f in os.listdir(raw_input_dir) if f.endswith('.wav')])
-            output_files = set([f.split(".")[0] for f in os.listdir(raw_output_dir) if f.endswith('.npy')])
-            if output_files != input_files:
-                unmatched_input = list(map(lambda x: x + '.wav', output_files - input_files))
-                unmatched_output = list(map(lambda x: x + '.npy', input_files - output_files))
-                raise FileNotFoundError(f"Unmatched files. Each input file must have a matching output file.\n\nUnmatched input file(s): {unmatched_input}.\n\nUnmatched output file(s): {unmatched_output}.")
-            self.files = input_files
+        # calculates derived settings
+        self.settings["frame_size_ms"] = int(1000 * self.settings['audio_frame_size_len'] / self.settings['audio_sample_rate'])
+        self.settings["frame_hop_ms"] = int(1000 * self.settings['audio_frame_hop_len'] / self.settings['audio_sample_rate'])
+        snore_frame_size_len = self.settings['snore_sample_rate'] * self.settings['frame_size_ms'] / 1000
+        self.settings["snore_frame_size_len"] = int(snore_frame_size_len)
+        snore_frame_hop_len = self.settings['snore_sample_rate'] * self.settings['frame_hop_ms'] / 1000
+        self.settings["snore_frame_hop_len"] = int(snore_frame_hop_len)
+        if snore_frame_hop_len != int(snore_frame_hop_len):
+            raise ValueError(f"Snore frame hop length {snore_frame_hop_len} is not an integer. Adjust settings.")
+        if snore_frame_size_len != int(snore_frame_size_len):
+            raise ValueError(f"Snore frame size length {snore_frame_size_len} is not an integer. Adjust settings.")
         
-        except Exception as e:
-            raise e
-        
+        input_files = set([f.split(".")[0] for f in os.listdir(raw_input_dir) if f.endswith('.wav')])
+        output_files = set([f.split(".")[0] for f in os.listdir(raw_output_dir) if f.endswith('.npy')])
+        if output_files != input_files:
+            unmatched_input = list(map(lambda x: x + '.wav', output_files - input_files))
+            unmatched_output = list(map(lambda x: x + '.npy', input_files - output_files))
+            raise FileNotFoundError(f"Unmatched files. Each input file must have a matching output file.\n\nUnmatched input file(s): {unmatched_input}.\n\nUnmatched output file(s): {unmatched_output}.")
+        self.files = input_files
         
     def compute_input_frames(self):
 
@@ -271,7 +268,7 @@ class Process:
         n = df["zcr"].isna().sum() - len(df)
 
     @staticmethod
-    def compute_frequency_domain_features(df:pd.DataFrame, filename:str, waveform:np.ndarray, sample_rate:int, frame_size_len:int, frame_hop_len:int):
+    def compute_frequency_domain_features(df:pd.DataFrame, waveform:np.ndarray, sample_rate:int, frame_size_len:int, frame_hop_len:int):
         df["scr"] = lr.feature.spectral_centroid(y=waveform, sr=sample_rate, n_fft=frame_size_len, hop_length=frame_hop_len, center=False).flatten()[:-1]
         n = df["scr"].isna().sum() - len(df)
         df["sbw"] = lr.feature.spectral_bandwidth(y=waveform, sr=sample_rate, n_fft=frame_size_len, hop_length=frame_hop_len, center=False).flatten()[:-1]
