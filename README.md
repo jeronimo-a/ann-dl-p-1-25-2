@@ -42,7 +42,8 @@ Every audio and snore signal in every file is hashed to identify repeated data. 
 - Frame hop: 26ms -> 1248 audio samples @ 48kHz sample rate -> 13 snore samples @ 500Hz
 - Frame sequence size: 10 frames
 - Frame sequence hop: 1 frame
-- Intensity threshold: 20dB - fairly faint sound level
+- Audio intensity FS to SPL: +50dB
+- Intensity threshold: 20dB -> -30dBFS - fairly faint sound level
 
 There will be considerable frame and sequence overlap, meaning, information will be repeated, which sounds like a problem but is standard practice for audio processing.
 
@@ -80,6 +81,12 @@ See deatailed implementation in ```src/process.py```.
 ## Data Sampling
 
 The data for the four patients with the most balanced snore occurence were used. Two of them will be used for training, one for validating and one for testing.
+
+**Patient IDs:**
+- 1593 - 46.6% positive @ -30 dBFS threshold
+- 1193 - 42.6% positive @ -30 dBFS threshold
+- 1402 - 42.2% positive @ -30 dBFS threshold
+- 1480 - 42.2% positive @ -30 dBFS threshold
 
 ### Normalization
 
