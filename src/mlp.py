@@ -84,35 +84,22 @@ class MLP:
                 epoch_loss += self.output_layer.loss(y_i, y_pred)
                 self.backward(y_i, y_pred)
                 self.update_parameters()
-            self.loss_history.append(epoch_loss / X.shape[1])
+            epoch_loss /= X.shape[0]
+            self.loss_history.append(epoch_loss)
             self.trained_epochs += 1
             print(f"Epoch {self.trained_epochs}/{epochs}, Loss: {epoch_loss:.4f}")
 
-    def accuracy(self, X: np.ndarray, y: np.ndarray) -> float:
-        
-        # validate inputs
+    def predict(self, X: np.ndarray) -> np.ndarray:
+
+        # input validation
         if X.ndim != 2: raise ValueError(f"Input data X must be a 2D array, but got {X.ndim}D array.")
-        if y.ndim != 2: raise ValueError(f"Output data y must be a 2D array, but got {y.ndim}D array.")
         if X.shape[1] != self.n_inputs: raise ValueError(f"Input data has {X.shape[1]} features, but model expects {self.n_inputs} features.")
-        if X.shape[0] != y.shape[0]: raise ValueError(f"Number of samples in X ({X.shape[1]}) does not match number of samples in y ({y.shape[1]}).")
-        if y.shape[1] != self.output_layer.size: raise ValueError(f"Output data has {y.shape[1]} features, but model expects {self.output_layer.size} features.")
 
-        n_correct = 0
-        n_total = X.shape[0]
+        y_pred = np.zeros((X.shape[0], self.output_layer.size), dtype=np.float64)
+        for i in range(X.shape[0]):
+            y_pred[i,:] = self.forward(X[i,np.newaxis].T).flatten()
 
-        for i in range(n_total):
-            y_pred = self.forward(X[i,np.newaxis].T)
-            y_actual = y[i,np.newaxis].T
-            if self.output_layer.size > 1:
-                y_pred = np.argmax(y_pred.flatten())
-                y_actual = np.argmax(y_actual.flatten())
-            elif self.output_layer.size == 1:
-                y_pred = round(y_pred[0,0])
-                y_actual = round(y_actual[0,0])
-
-            n_correct += int(y_pred == y_actual)
-
-        return n_correct / n_total
+        return y_pred
     
     def save(self, filepath: str):
         layer_params = dict()
@@ -138,4 +125,49 @@ class MLP:
         layer_params["learning_rate"] = self.learning_rate
         layer_params["seed"] = self.seed
         layer_params["trained_epochs"] = self.trained_epochs
+        layer_params["loss_history"] = self.loss_history
         np.savez_compressed(filepath, **layer_params)
+
+    @classmethod
+    def load(cls, filepath: str) -> 'MLP':
+        data = np.load(filepath, allow_pickle=True)
+        n_inputs = int(data["n_inputs"])
+        learning_rate = float(data["learning_rate"])
+        seed = int(data["seed"])
+        trained_epochs = int(data["trained_epochs"])
+
+        hidden_layers_config = []
+        i = 0
+        while f"hidden_layer_{i}" in data:
+            layer_data = data[f"hidden_layer_{i}"].item()
+            hidden_layer_config = {
+                "size": int(layer_data["size"]),
+                "activation_function": str(layer_data["activation_function"]),
+                "weights_initializer": str(layer_data["weights_initializer"]),
+                "initial_biases": float(layer_data["initial_biases"])
+            }
+            hidden_layers_config.append(hidden_layer_config)
+            i += 1
+
+        output_layer_data = data["output_layer"].item()
+        output_layer_config = {
+            "size": int(output_layer_data["size"]),
+            "activation_function": str(output_layer_data["activation_function"]),
+            "weights_initializer": str(output_layer_data["weights_initializer"]),
+            "initial_biases": float(output_layer_data["initial_biases"]),
+            "loss_function": str(output_layer_data["loss_function"])
+        }
+
+        model = cls(n_inputs=n_inputs, output_layer_config=output_layer_config, hidden_layers_config=hidden_layers_config, learning_rate=learning_rate, seed=seed)
+
+        for i, hidden_layer in enumerate(model.hidden_layers):
+            layer_data = data[f"hidden_layer_{i}"].item()
+            hidden_layer.weights = layer_data["weights"]
+            hidden_layer.biases = layer_data["biases"]
+
+        model.output_layer.weights = output_layer_data["weights"]
+        model.output_layer.biases = output_layer_data["biases"]
+        model.trained_epochs = trained_epochs
+        model.loss_history = data["loss_history"].tolist()
+
+        return model

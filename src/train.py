@@ -69,3 +69,11 @@ y_train = df_train_output["snored"].to_numpy()[:, np.newaxis]
 
 model.train(X_train, y_train, epochs=N_EPOCHS)
 model.save(os.path.join(os.path.dirname(FILEPATH), '..', 'models', f'mlp_{NOW}.npz'))
+
+plt.plot(range(1, N_EPOCHS+1), model.loss_history)
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.title(f"Training Loss over Epochs MLP {NOW}")
+plt.grid()
+plt.savefig(os.path.join(os.path.dirname(FILEPATH), '..', 'reports', 'figures', f'training_loss_mlp_{NOW}.png'))
+plt.close()
