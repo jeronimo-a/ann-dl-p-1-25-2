@@ -307,3 +307,39 @@ There are several promising directions to make the model more robust and applica
 - Expand Dataset: Incorporate more patients across diverse demographics, as well as uncontrolled audio data, to improve robustness and reduce overfitting to the current dataset.
 - Noise Augmentation: Introduce background noise (street sounds, conversations, appliances) during training to simulate real-world conditions.
 - Feature Engineering: Explore additional audio features, temporal context windows, or frequency-domain transformations beyond the current MFCCs and spectral metrics.
+
+## Further Evaluation
+
+Further evaluation was made with 50 other patients from the dataset.
+
+Evaluating on patient IDs: [1182 1204 1245 1228 1208 1265 1106 1095 1129 1126 1210 1163 1285 1263
+ 1120 1143 1057 1202 1116 1241 1028 1122 1086 1045 1197 1169 1276 1131
+ 1176 1282 1284 1071 1093 1247 1249 1226 1073 1234 1252 1250 1108 1118
+ 1097 1217 1186 1137 1256 1224 1104 1151]
+
+Test accuracy: 99.65%
+Test AUC: 0.9999
+Precision: 0.9659
+Recall: 0.9818
+F1 Score: 0.9738
+
+Baseline Always Negative Metrics:
+Baseline accuracy: 93.43%
+Baseline AUC: 0.5000
+Baseline Precision: 0.0000
+Baseline Recall: 0.0000
+Baseline F1 Score: 0.0000
+
+Random Model Metrics:
+Random accuracy: 50.01%
+Random AUC: 0.5003
+Random Precision: 0.0658
+Random Recall: 0.5005
+Random F1 Score: 0.1162
+
+Always Positive Model Metrics:
+Always Positive accuracy: 6.57%
+Always Positive AUC: 0.5000
+Always Positive Precision: 0.0657
+Always Positive Recall: 1.0000
+Always Positive F1 Score: 0.1233
