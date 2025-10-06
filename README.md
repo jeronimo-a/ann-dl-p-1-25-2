@@ -295,3 +295,15 @@ The model demonstrates outstanding performance on the test set. With an accuracy
 ![ROC Curve](reports/figures/roc_curve_mlp_20251005_210459.png)
 
 ![Confusion Matrix](reports/figures/confusion_matrix_mlp_20251005_210459.png)
+
+## Caveats
+Despite the strong performance on the current test set, there are several caveats to consider:
+- Limited Dataset Scope: Only four patients were used, selected for their relatively balanced snore occurrence. This may introduce bias and limit the generalizability of the model to broader populations.
+- Controlled Environment: The dataset comes from polysomnography exams, which are recorded in controlled environments. Real-world audio is likely to include environmental noise (e.g., traffic, pets, conversations), which the model has not been exposed to.
+- Overlap in Sampling: Due to frame and sequence overlap, samples are not fully independent. This may artificially inflate performance metrics, as nearby frames are highly correlated.
+
+## Future Improvements
+There are several promising directions to make the model more robust and applicable:
+- Expand Dataset: Incorporate more patients across diverse demographics, as well as uncontrolled audio data, to improve robustness and reduce overfitting to the current dataset.
+- Noise Augmentation: Introduce background noise (street sounds, conversations, appliances) during training to simulate real-world conditions.
+- Feature Engineering: Explore additional audio features, temporal context windows, or frequency-domain transformations beyond the current MFCCs and spectral metrics.
