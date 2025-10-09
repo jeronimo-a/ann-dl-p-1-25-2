@@ -284,13 +284,16 @@ Test data in ```models/testing_data_mlp_20251005_210459.parquet```
 
 ### Test Results
 
-- Accuracy: ```98.90%```
-- ROC-AUC: ```99.97%```
-- Precision: ```98.93%```
-- Recall: ```99.50%```
-- F1 Score: ```99.22%```
 
-The model demonstrates outstanding performance on the test set. With an accuracy of 98.9% and a ROC-AUC of 99.97%, it is almost perfectly distinguishing between classes. Both precision (98.93%) and recall (99.50%) are extremely high, meaning the model rarely produces false alarms and almost never misses true positives. The F1 score of 99.22% reflects this balance. Overall, the results show a highly effective and reliable classifier that clearly outperforms trivial baselines.
+Thinking the results were too good to be true, after further testing a critical data-leak has been found. Data from the output values was included by accident in the training data. Disregard results below.
+
+- ~~Accuracy: ```98.90%```~~
+- ~~ROC-AUC: ```99.97%```~~
+- ~~Precision: ```98.93%```~~
+- ~~Recall: ```99.50%```~~
+- ~~F1 Score: ```99.22%```~~
+
+~~The model demonstrates outstanding performance on the test set. With an accuracy of 98.9% and a ROC-AUC of 99.97%, it is almost perfectly distinguishing between classes. Both precision (98.93%) and recall (99.50%) are extremely high, meaning the model rarely produces false alarms and almost never misses true positives. The F1 score of 99.22% reflects this balance. Overall, the results show a highly effective and reliable classifier that clearly outperforms trivial baselines.~~
 
 ![ROC Curve](reports/figures/roc_curve_mlp_20251005_210459.png)
 
